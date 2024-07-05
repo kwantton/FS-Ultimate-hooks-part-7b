@@ -15,20 +15,35 @@ const useField = (type) => {
   }
 }
 
-const useResource = (baseUrl) => {
+                    // baseUrl = either localhost:3005/notes or localhost:3005/persons
+const useResource = (baseUrl) => { // "Extract the code for communicating with the backend into its own useResource hook. It is sufficient to implement fetching all resources and creating a new resource."
   const [resources, setResources] = useState([])
 
   // ...
+  // I guess useEffect should be used to get the resources
+  useEffect(() => {
+    axios.get(baseUrl)
+    .then(response => {
+      console.log("get response.data:", response.data)
+      setResources(response.data)
+    })
+  }, [baseUrl])
 
-  const create = (resource) => {
-    // ...
+  const create = (resource) => {  // resource = { name: name.value, number: number.value} (person), OR  { content: content.value } (notes)
+    axios.post(`${baseUrl}`, resource)
+    .then(response => {
+      console.log("post response.data:",response.data)
+      setResources([...resources, response.data]) // don't forget this or you won't see the new stuff until refresing (presuming your database is functional, that is c:)
+      return response.data // since "service" (this function) is returned to be used in this way
+    })
+    .catch(error => console.error(error))
   }
 
   const service = {
     create
   }
 
-  return [
+  return [ // below: [notes, noteService] = useResource('http://localhost:3005/notes), etc. for persons, personService
     resources, service
   ]
 }
